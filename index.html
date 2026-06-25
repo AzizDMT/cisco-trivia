@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>DealMyTime Quiz</title>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="qrcode.js"></script>
 <style>
   :root {
     --cisco-blue:   #1BA0D7;
@@ -88,7 +88,7 @@
 
   .qr { display: flex; flex-direction: column; align-items: center; gap: 1.4vh; }
   .qr .box { background: #fff; padding: 1.6vh; border-radius: 1.6vh; line-height: 0; }
-  .qr canvas { display: block; }
+  .qr img { display: block; width: 30vh; height: 30vh; image-rendering: pixelated; }
   .qrcap { font-size: 2.4vh; color: var(--yellow); font-weight: 700; max-width: 26vw; text-align: center; line-height: 1.3; }
 
   .hidden { display: none !important; }
@@ -121,7 +121,7 @@
     <div class="resrow hidden" id="resrow">
       <div class="board" id="board"><h3>Leaderboard</h3><div id="boardRows"></div></div>
       <div class="qr" id="qrWrap">
-        <div class="box"><canvas id="qrCanvas"></canvas></div>
+        <div class="box"><img id="qrImg" alt="certificate QR"></div>
         <div class="qrcap">Scan for your photo certificate<br>name &amp; score pre-filled</div>
       </div>
     </div>
@@ -203,16 +203,18 @@
     document.getElementById('resrow').classList.add('hidden');
   }
 
-  // Build the pre-filled certificate URL and render it as a QR code.
+  // Build the pre-filled certificate URL and render it as a QR code (local lib).
   function renderCertQR(name, score, total) {
     const base = location.href.split('?')[0].replace(/[^/]*$/, '');
     const certUrl = `${base}cert.html?name=${encodeURIComponent(name)}&score=${score}&total=${total}`;
-    const canvas = document.getElementById('qrCanvas');
-    const size = Math.round(window.innerHeight * 0.30);
-    if (window.QRCode && QRCode.toCanvas) {
-      QRCode.toCanvas(canvas, certUrl, {
-        width: size, margin: 1, color: { dark: '#07182E', light: '#FFFFFF' },
-      }, () => {});
+    const img = document.getElementById('qrImg');
+    try {
+      const qr = qrcode(0, 'M');     // type 0 = auto-size, EC level M
+      qr.addData(certUrl);
+      qr.make();
+      img.src = qr.createDataURL(8, 16);   // cellSize=8px, margin=16px
+    } catch (e) {
+      img.alt = 'QR could not be generated';
     }
   }
 
