@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>DealMyTime Trivia</title>
+<title>DealMyTime Quiz</title>
 <style>
   :root {
     --cisco-blue:   #1BA0D7;
@@ -33,9 +33,7 @@
   .brand .title { color: var(--yellow);     font-weight: 800; letter-spacing: .08em; }
   .brand .right { color: var(--muted); font-size: 2.2vh; letter-spacing: .25em; }
 
-  .status {
-    margin-top: 1vh; font-size: 2.8vh; color: var(--muted); font-weight: 600;
-  }
+  .status { margin-top: 1vh; font-size: 2.8vh; color: var(--muted); font-weight: 600; }
   .timerbar {
     height: 1.1vh; width: 100%; background: rgba(255,255,255,.08);
     border-radius: 1vh; overflow: hidden; margin-top: 1.4vh;
@@ -45,22 +43,21 @@
     background: linear-gradient(90deg, var(--cisco-blue), #6FD3F2);
     transform-origin: left center;
   }
-  .question {
-    flex: 0 0 auto; margin: 4vh 0 3vh;
-    font-size: 5.2vh; font-weight: 700; line-height: 1.15;
-  }
-  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 2.4vh; flex: 1 1 auto; }
+  .question { flex: 0 0 auto; margin: 3.5vh 0 3vh; font-size: 5.4vh; font-weight: 700; line-height: 1.15; }
+
+  /* single column, 3 options, aligned top-to-bottom with the Navigator */
+  .options { display: flex; flex-direction: column; gap: 2.4vh; flex: 1 1 auto; justify-content: center; }
   .opt {
-    display: flex; align-items: center; gap: 2vh;
+    display: flex; align-items: center; gap: 2.5vh;
     background: rgba(255,255,255,.06); border: 2px solid rgba(255,255,255,.08);
-    border-radius: 2vh; padding: 2.4vh 3vh; font-size: 3.4vh; font-weight: 600;
+    border-radius: 2vh; padding: 2.6vh 3.5vh; font-size: 3.8vh; font-weight: 600;
     transition: background .25s, border-color .25s, transform .25s;
   }
   .opt .letter {
-    flex: 0 0 auto; width: 6.5vh; height: 6.5vh; border-radius: 50%;
+    flex: 0 0 auto; width: 7vh; height: 7vh; border-radius: 50%;
     background: var(--cisco-blue); color: var(--cisco-navy);
     display: flex; align-items: center; justify-content: center;
-    font-size: 3.4vh; font-weight: 800;
+    font-size: 3.6vh; font-weight: 800;
   }
   .opt.correct { background: rgba(46,204,113,.22); border-color: var(--green); transform: scale(1.02); }
   .opt.correct .letter { background: var(--green); color: #06281A; }
@@ -74,12 +71,9 @@
   .big   { font-size: 8vh;  font-weight: 800; }
   .huge  { font-size: 13vh; font-weight: 800; color: var(--yellow); line-height: 1; }
   .sub   { font-size: 3.6vh; color: var(--muted); font-weight: 600; }
-  .qr-note { font-size: 2.8vh; color: var(--ink); opacity: .9; }
 
-  /* leaderboard */
   .board { width: 60%; max-width: 70vw; margin-top: 1vh; }
-  .board h3 { font-size: 2.8vh; color: var(--yellow); letter-spacing: .15em;
-              text-transform: uppercase; margin-bottom: 1.4vh; }
+  .board h3 { font-size: 2.8vh; color: var(--yellow); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 1.4vh; }
   .board .row {
     display: flex; align-items: center; justify-content: space-between;
     font-size: 3vh; padding: 1.1vh 2vh; border-radius: 1.2vh;
@@ -96,30 +90,28 @@
 </head>
 <body>
   <div class="brand">
-    <span><span class="logo">CISCO</span> <span class="title">DealMyTime Trivia</span></span>
+    <span><span class="logo">CISCO</span> <span class="title">DealMyTime</span></span>
     <span class="right">booth edition</span>
   </div>
 
   <!-- QUESTION VIEW -->
   <div id="questionView" class="hidden">
-    <div class="status" id="status">Question 1/8</div>
+    <div class="status" id="status">Question 1/5</div>
     <div class="timerbar"><span id="timerFill"></span></div>
     <div class="question" id="question">Question text</div>
     <div class="options">
       <div class="opt" data-key="a"><span class="letter">A</span><span class="txt" id="oa"></span></div>
       <div class="opt" data-key="b"><span class="letter">B</span><span class="txt" id="ob"></span></div>
       <div class="opt" data-key="c"><span class="letter">C</span><span class="txt" id="oc"></span></div>
-      <div class="opt" data-key="d"><span class="letter">D</span><span class="txt" id="od"></span></div>
     </div>
   </div>
 
   <!-- START / RESULTS VIEW -->
   <div id="centerView" class="center hidden">
-    <div class="big"  id="centerBig">DealMyTime Trivia</div>
+    <div class="big"  id="centerBig">DealMyTime QUIZ</div>
     <div class="huge hidden" id="centerHuge"></div>
     <div class="sub"  id="centerSub">Enter your name on the Navigator to play</div>
     <div class="board hidden" id="board"><h3>Leaderboard</h3><div id="boardRows"></div></div>
-    <div class="qr-note hidden" id="qrNote">Scan the booth QR to claim your score and enter the raffle</div>
   </div>
 
 <script>
@@ -138,13 +130,12 @@
     showQuestion(true);
     const name = get('name');
     const head = (name ? name + '   •   ' : '') +
-                 `Question ${get('n','1')}/${get('total','8')}   •   Score ${get('score','0')}`;
+                 `Question ${get('n','1')}/${get('total','5')}   •   Score ${get('score','0')}`;
     document.getElementById('status').textContent = head;
     document.getElementById('question').textContent = get('q');
     document.getElementById('oa').textContent = get('oa');
     document.getElementById('ob').textContent = get('ob');
     document.getElementById('oc').textContent = get('oc');
-    document.getElementById('od').textContent = get('od');
 
     const fill = document.getElementById('timerFill');
     if (mode === 'question') {
@@ -164,7 +155,7 @@
     showQuestion(false);
     const name = get('name', 'Player');
     const score = parseInt(get('score','0'),10);
-    const total = Math.max(1, parseInt(get('total','8'),10));
+    const total = Math.max(1, parseInt(get('total','5'),10));
     document.getElementById('centerBig').textContent = 'Round Complete';
     const huge = document.getElementById('centerHuge');
     huge.classList.remove('hidden');
@@ -176,30 +167,26 @@
     else if (pct >= 50) verdict = 'Solid effort';
     document.getElementById('centerSub').textContent = `${name} - ${verdict}`;
 
-    // leaderboard:  lb = "Name~score~total|Name~score~total|..."
     const lbRaw = get('lb');
     if (lbRaw) {
       const rows = lbRaw.split('|').filter(Boolean).map(e => {
         const [n, s, t] = e.split('~');
         return { n, s: parseInt(s, 10), t: parseInt(t, 10) };
       });
-      const html = rows.map((r, i) => {
+      document.getElementById('boardRows').innerHTML = rows.map((r, i) => {
         const me = (r.n === name && r.s === score && r.t === total) ? ' me' : '';
         return `<div class="row${me}"><span class="rank">${i + 1}</span>` +
                `<span class="name">${escapeHtml(r.n)}</span>` +
                `<span class="pts">${r.s}/${r.t}</span></div>`;
       }).join('');
-      document.getElementById('boardRows').innerHTML = html;
       document.getElementById('board').classList.remove('hidden');
     }
-    document.getElementById('qrNote').classList.remove('hidden');
   } else {
     showQuestion(false);
-    document.getElementById('centerBig').textContent = 'DealMyTime Trivia';
+    document.getElementById('centerBig').textContent = 'DealMyTime QUIZ';
     document.getElementById('centerHuge').classList.add('hidden');
     document.getElementById('centerSub').textContent = 'Enter your name on the Navigator to play';
     document.getElementById('board').classList.add('hidden');
-    document.getElementById('qrNote').classList.add('hidden');
   }
 
   function escapeHtml(s) {
