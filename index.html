@@ -71,6 +71,7 @@
   .big   { font-size: 8vh;  font-weight: 800; }
   .huge  { font-size: 13vh; font-weight: 800; color: var(--yellow); line-height: 1; }
   .sub   { font-size: 3.6vh; color: var(--muted); font-weight: 600; }
+  .qr-note { font-size: 2.8vh; color: var(--yellow); font-weight: 600; }
 
   .board { width: 60%; max-width: 70vw; margin-top: 1vh; }
   .board h3 { font-size: 2.8vh; color: var(--yellow); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 1.4vh; }
@@ -112,6 +113,7 @@
     <div class="huge hidden" id="centerHuge"></div>
     <div class="sub"  id="centerSub">Enter your name on the Navigator to play</div>
     <div class="board hidden" id="board"><h3>Leaderboard</h3><div id="boardRows"></div></div>
+    <div class="qr-note hidden" id="station">Visit the certificate station to grab your photo certificate</div>
   </div>
 
 <script>
@@ -181,12 +183,14 @@
       }).join('');
       document.getElementById('board').classList.remove('hidden');
     }
+    document.getElementById('station').classList.remove('hidden');
   } else {
     showQuestion(false);
     document.getElementById('centerBig').textContent = 'DealMyTime QUIZ';
     document.getElementById('centerHuge').classList.add('hidden');
     document.getElementById('centerSub').textContent = 'Enter your name on the Navigator to play';
     document.getElementById('board').classList.add('hidden');
+    document.getElementById('station').classList.add('hidden');
   }
 
   function escapeHtml(s) {
