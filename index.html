@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Cisco Trivia</title>
+<title>DealMyTime Trivia</title>
 <style>
   :root {
     --cisco-blue:   #1BA0D7;
     --cisco-dark:   #0D274D;
     --cisco-navy:   #07182E;
+    --yellow:       #FFD200;
     --green:        #2ECC71;
     --red:          #E74C3C;
     --ink:          #FFFFFF;
@@ -26,12 +27,14 @@
   }
   .brand {
     display: flex; align-items: center; justify-content: space-between;
-    font-size: 2.2vh; letter-spacing: .3em; color: var(--muted);
-    text-transform: uppercase;
+    font-size: 2.6vh; letter-spacing: .15em; text-transform: uppercase;
   }
-  .brand .logo { color: var(--cisco-blue); font-weight: 700; letter-spacing: .15em; }
+  .brand .logo  { color: var(--cisco-blue); font-weight: 800; letter-spacing: .12em; }
+  .brand .title { color: var(--yellow);     font-weight: 800; letter-spacing: .08em; }
+  .brand .right { color: var(--muted); font-size: 2.2vh; letter-spacing: .25em; }
+
   .status {
-    margin-top: 1vh; font-size: 2.6vh; color: var(--muted); font-weight: 600;
+    margin-top: 1vh; font-size: 2.8vh; color: var(--muted); font-weight: 600;
   }
   .timerbar {
     height: 1.1vh; width: 100%; background: rgba(255,255,255,.08);
@@ -46,7 +49,7 @@
     flex: 0 0 auto; margin: 4vh 0 3vh;
     font-size: 5.2vh; font-weight: 700; line-height: 1.15;
   }
-  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 2.2vh; flex: 1 1 auto; }
+  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 2.4vh; flex: 1 1 auto; }
   .opt {
     display: flex; align-items: center; gap: 2vh;
     background: rgba(255,255,255,.06); border: 2px solid rgba(255,255,255,.08);
@@ -66,33 +69,42 @@
 
   .center {
     flex: 1 1 auto; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; text-align: center; gap: 3vh;
+    align-items: center; justify-content: center; text-align: center; gap: 2.4vh;
   }
-  .big   { font-size: 9vh; font-weight: 800; }
-  .huge  { font-size: 16vh; font-weight: 800; color: var(--cisco-blue); }
-  .sub   { font-size: 4vh; color: var(--muted); font-weight: 600; }
-  .pill  {
-    display: inline-block; margin-top: 1vh; padding: 1.6vh 4vh;
-    background: var(--cisco-blue); color: var(--cisco-navy);
-    border-radius: 6vh; font-size: 3vh; font-weight: 800;
-  }
-  .qr-note { font-size: 3vh; color: var(--ink); opacity: .9; }
-  .hidden { display: none !important; }
+  .big   { font-size: 8vh;  font-weight: 800; }
+  .huge  { font-size: 13vh; font-weight: 800; color: var(--yellow); line-height: 1; }
+  .sub   { font-size: 3.6vh; color: var(--muted); font-weight: 600; }
+  .qr-note { font-size: 2.8vh; color: var(--ink); opacity: .9; }
 
+  /* leaderboard */
+  .board { width: 60%; max-width: 70vw; margin-top: 1vh; }
+  .board h3 { font-size: 2.8vh; color: var(--yellow); letter-spacing: .15em;
+              text-transform: uppercase; margin-bottom: 1.4vh; }
+  .board .row {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 3vh; padding: 1.1vh 2vh; border-radius: 1.2vh;
+    background: rgba(255,255,255,.05); margin-bottom: 1vh;
+  }
+  .board .row.me { background: rgba(255,210,0,.16); border: 1px solid var(--yellow); }
+  .board .row .rank { color: var(--muted); width: 4vh; }
+  .board .row .name { flex: 1 1 auto; text-align: left; padding-left: 1.5vh; font-weight: 700; }
+  .board .row .pts  { color: var(--cisco-blue); font-weight: 800; }
+
+  .hidden { display: none !important; }
   @keyframes drain { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 </style>
 </head>
 <body>
   <div class="brand">
-    <span><span class="logo">CISCO</span> &nbsp;PARTNER&nbsp;TRIVIA</span>
-    <span id="brandRight">booth&nbsp;edition</span>
+    <span><span class="logo">CISCO</span> <span class="title">DealMyTime Trivia</span></span>
+    <span class="right">booth edition</span>
   </div>
 
   <!-- QUESTION VIEW -->
   <div id="questionView" class="hidden">
-    <div class="status" id="status">Question 1/8 • Score 0</div>
+    <div class="status" id="status">Question 1/8</div>
     <div class="timerbar"><span id="timerFill"></span></div>
-    <div class="question" id="question">Question text…</div>
+    <div class="question" id="question">Question text</div>
     <div class="options">
       <div class="opt" data-key="a"><span class="letter">A</span><span class="txt" id="oa"></span></div>
       <div class="opt" data-key="b"><span class="letter">B</span><span class="txt" id="ob"></span></div>
@@ -103,30 +115,31 @@
 
   <!-- START / RESULTS VIEW -->
   <div id="centerView" class="center hidden">
-    <div class="big"   id="centerBig">🧠 Cisco Trivia</div>
+    <div class="big"  id="centerBig">DealMyTime Trivia</div>
     <div class="huge hidden" id="centerHuge"></div>
-    <div class="sub"   id="centerSub">Tap “Start ▶” on the Navigator to play!</div>
-    <div class="qr-note hidden" id="qrNote">📲 Scan the booth QR to claim your score &amp; enter the raffle!</div>
+    <div class="sub"  id="centerSub">Enter your name on the Navigator to play</div>
+    <div class="board hidden" id="board"><h3>Leaderboard</h3><div id="boardRows"></div></div>
+    <div class="qr-note hidden" id="qrNote">Scan the booth QR to claim your score and enter the raffle</div>
   </div>
 
 <script>
-  // ---- read state from the URL query string -------------------------------
   const p = new URLSearchParams(location.search);
   const get = (k, d = '') => p.get(k) ?? d;
   const mode = get('mode', 'start');
 
   const questionView = document.getElementById('questionView');
   const centerView   = document.getElementById('centerView');
-
-  function show(view) {
-    questionView.classList.toggle('hidden', view !== 'question');
-    centerView.classList.toggle('hidden', view === 'question');
-  }
+  const showQuestion = (v) => {
+    questionView.classList.toggle('hidden', !v);
+    centerView.classList.toggle('hidden', v);
+  };
 
   if (mode === 'question' || mode === 'reveal') {
-    show('question');
-    document.getElementById('status').textContent =
-      `Question ${get('n','1')}/${get('total','8')}  •  Score ${get('score','0')}`;
+    showQuestion(true);
+    const name = get('name');
+    const head = (name ? name + '   •   ' : '') +
+                 `Question ${get('n','1')}/${get('total','8')}   •   Score ${get('score','0')}`;
+    document.getElementById('status').textContent = head;
     document.getElementById('question').textContent = get('q');
     document.getElementById('oa').textContent = get('oa');
     document.getElementById('ob').textContent = get('ob');
@@ -136,16 +149,11 @@
     const fill = document.getElementById('timerFill');
     if (mode === 'question') {
       const t = parseInt(get('t', '0'), 10);
-      if (t > 0) {
-        fill.style.animation = `drain ${t}s linear forwards`;
-      } else {
-        fill.style.transform = 'scaleX(1)';
-      }
+      if (t > 0) fill.style.animation = `drain ${t}s linear forwards`;
+      else fill.style.transform = 'scaleX(1)';
     } else {
-      // reveal: freeze bar, colour the options
       fill.style.transform = 'scaleX(0)';
-      const correct = get('correct');
-      const chosen  = get('chosen');
+      const correct = get('correct'), chosen = get('chosen');
       document.querySelectorAll('.opt').forEach(el => {
         const k = el.dataset.key;
         if (k === correct) el.classList.add('correct');
@@ -153,25 +161,50 @@
       });
     }
   } else if (mode === 'results') {
-    show('center');
-    document.getElementById('centerBig').textContent = 'Round Complete!';
+    showQuestion(false);
+    const name = get('name', 'Player');
+    const score = parseInt(get('score','0'),10);
+    const total = Math.max(1, parseInt(get('total','8'),10));
+    document.getElementById('centerBig').textContent = 'Round Complete';
     const huge = document.getElementById('centerHuge');
     huge.classList.remove('hidden');
-    huge.textContent = `${get('score','0')} / ${get('total','8')}`;
-    const pct = Math.round((parseInt(get('score','0'),10) / Math.max(1, parseInt(get('total','8'),10))) * 100);
-    let verdict = '📚 Time to brush up — play again!';
-    if (pct === 100)    verdict = '🏆 Flawless! Networking legend.';
-    else if (pct >= 75) verdict = '🌟 Sharp! Cisco-certified vibes.';
-    else if (pct >= 50) verdict = '👍 Solid effort.';
-    document.getElementById('centerSub').textContent = verdict;
+    huge.textContent = `${score} / ${total}`;
+    const pct = Math.round((score / total) * 100);
+    let verdict = 'Nice try - play again to climb the board';
+    if (pct === 100)    verdict = 'Flawless - networking legend';
+    else if (pct >= 75) verdict = 'Sharp - Cisco-certified vibes';
+    else if (pct >= 50) verdict = 'Solid effort';
+    document.getElementById('centerSub').textContent = `${name} - ${verdict}`;
+
+    // leaderboard:  lb = "Name~score~total|Name~score~total|..."
+    const lbRaw = get('lb');
+    if (lbRaw) {
+      const rows = lbRaw.split('|').filter(Boolean).map(e => {
+        const [n, s, t] = e.split('~');
+        return { n, s: parseInt(s, 10), t: parseInt(t, 10) };
+      });
+      const html = rows.map((r, i) => {
+        const me = (r.n === name && r.s === score && r.t === total) ? ' me' : '';
+        return `<div class="row${me}"><span class="rank">${i + 1}</span>` +
+               `<span class="name">${escapeHtml(r.n)}</span>` +
+               `<span class="pts">${r.s}/${r.t}</span></div>`;
+      }).join('');
+      document.getElementById('boardRows').innerHTML = html;
+      document.getElementById('board').classList.remove('hidden');
+    }
     document.getElementById('qrNote').classList.remove('hidden');
   } else {
-    // start / idle
-    show('center');
-    document.getElementById('centerBig').textContent = '🧠 Cisco Trivia';
+    showQuestion(false);
+    document.getElementById('centerBig').textContent = 'DealMyTime Trivia';
     document.getElementById('centerHuge').classList.add('hidden');
-    document.getElementById('centerSub').textContent = 'Tap “Start ▶” on the Navigator to play!';
+    document.getElementById('centerSub').textContent = 'Enter your name on the Navigator to play';
+    document.getElementById('board').classList.add('hidden');
     document.getElementById('qrNote').classList.add('hidden');
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c =>
+      ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
   }
 </script>
 </body>
