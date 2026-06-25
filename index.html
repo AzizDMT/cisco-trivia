@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>DealMyTime Quiz</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <style>
   :root {
     --cisco-blue:   #1BA0D7;
@@ -45,7 +46,6 @@
   }
   .question { flex: 0 0 auto; margin: 3.5vh 0 3vh; font-size: 5.4vh; font-weight: 700; line-height: 1.15; }
 
-  /* single column, 3 options, aligned top-to-bottom with the Navigator */
   .options { display: flex; flex-direction: column; gap: 2.4vh; flex: 1 1 auto; justify-content: center; }
   .opt {
     display: flex; align-items: center; gap: 2.5vh;
@@ -66,24 +66,30 @@
 
   .center {
     flex: 1 1 auto; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; text-align: center; gap: 2.4vh;
+    align-items: center; justify-content: center; text-align: center; gap: 2.2vh;
   }
-  .big   { font-size: 8vh;  font-weight: 800; }
-  .huge  { font-size: 13vh; font-weight: 800; color: var(--yellow); line-height: 1; }
-  .sub   { font-size: 3.6vh; color: var(--muted); font-weight: 600; }
-  .qr-note { font-size: 2.8vh; color: var(--yellow); font-weight: 600; }
+  .big   { font-size: 7.5vh; font-weight: 800; }
+  .huge  { font-size: 11vh;  font-weight: 800; color: var(--yellow); line-height: 1; }
+  .sub   { font-size: 3.4vh; color: var(--muted); font-weight: 600; }
 
-  .board { width: 60%; max-width: 70vw; margin-top: 1vh; }
-  .board h3 { font-size: 2.8vh; color: var(--yellow); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 1.4vh; }
+  /* results: leaderboard + QR side by side */
+  .resrow { display: flex; gap: 5vw; align-items: center; justify-content: center; width: 100%; margin-top: 1vh; }
+  .board { flex: 0 1 auto; min-width: 38vw; }
+  .board h3 { font-size: 2.6vh; color: var(--yellow); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 1.2vh; }
   .board .row {
     display: flex; align-items: center; justify-content: space-between;
-    font-size: 3vh; padding: 1.1vh 2vh; border-radius: 1.2vh;
-    background: rgba(255,255,255,.05); margin-bottom: 1vh;
+    font-size: 2.8vh; padding: 1vh 2vh; border-radius: 1.2vh;
+    background: rgba(255,255,255,.05); margin-bottom: .9vh;
   }
   .board .row.me { background: rgba(255,210,0,.16); border: 1px solid var(--yellow); }
   .board .row .rank { color: var(--muted); width: 4vh; }
   .board .row .name { flex: 1 1 auto; text-align: left; padding-left: 1.5vh; font-weight: 700; }
   .board .row .pts  { color: var(--cisco-blue); font-weight: 800; }
+
+  .qr { display: flex; flex-direction: column; align-items: center; gap: 1.4vh; }
+  .qr .box { background: #fff; padding: 1.6vh; border-radius: 1.6vh; line-height: 0; }
+  .qr canvas { display: block; }
+  .qrcap { font-size: 2.4vh; color: var(--yellow); font-weight: 700; max-width: 26vw; text-align: center; line-height: 1.3; }
 
   .hidden { display: none !important; }
   @keyframes drain { from { transform: scaleX(1); } to { transform: scaleX(0); } }
@@ -112,8 +118,13 @@
     <div class="big"  id="centerBig">DealMyTime QUIZ</div>
     <div class="huge hidden" id="centerHuge"></div>
     <div class="sub"  id="centerSub">Enter your name on the Navigator to play</div>
-    <div class="board hidden" id="board"><h3>Leaderboard</h3><div id="boardRows"></div></div>
-    <div class="qr-note hidden" id="station">Visit the certificate station to grab your photo certificate</div>
+    <div class="resrow hidden" id="resrow">
+      <div class="board" id="board"><h3>Leaderboard</h3><div id="boardRows"></div></div>
+      <div class="qr" id="qrWrap">
+        <div class="box"><canvas id="qrCanvas"></canvas></div>
+        <div class="qrcap">Scan for your photo certificate<br>name &amp; score pre-filled</div>
+      </div>
+    </div>
   </div>
 
 <script>
@@ -181,16 +192,28 @@
                `<span class="name">${escapeHtml(r.n)}</span>` +
                `<span class="pts">${r.s}/${r.t}</span></div>`;
       }).join('');
-      document.getElementById('board').classList.remove('hidden');
     }
-    document.getElementById('station').classList.remove('hidden');
+    renderCertQR(name, score, total);
+    document.getElementById('resrow').classList.remove('hidden');
   } else {
     showQuestion(false);
     document.getElementById('centerBig').textContent = 'DealMyTime QUIZ';
     document.getElementById('centerHuge').classList.add('hidden');
     document.getElementById('centerSub').textContent = 'Enter your name on the Navigator to play';
-    document.getElementById('board').classList.add('hidden');
-    document.getElementById('station').classList.add('hidden');
+    document.getElementById('resrow').classList.add('hidden');
+  }
+
+  // Build the pre-filled certificate URL and render it as a QR code.
+  function renderCertQR(name, score, total) {
+    const base = location.href.split('?')[0].replace(/[^/]*$/, '');
+    const certUrl = `${base}cert.html?name=${encodeURIComponent(name)}&score=${score}&total=${total}`;
+    const canvas = document.getElementById('qrCanvas');
+    const size = Math.round(window.innerHeight * 0.30);
+    if (window.QRCode && QRCode.toCanvas) {
+      QRCode.toCanvas(canvas, certUrl, {
+        width: size, margin: 1, color: { dark: '#07182E', light: '#FFFFFF' },
+      }, () => {});
+    }
   }
 
   function escapeHtml(s) {
