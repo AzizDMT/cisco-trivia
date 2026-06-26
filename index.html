@@ -24,42 +24,43 @@
     background: radial-gradient(circle at 50% 0%, var(--cisco-dark), var(--cisco-navy) 70%);
     display: flex; flex-direction: column;
     height: 100vh; overflow: hidden;
-    padding: 4vh 6vw;
+    padding: 3.5vh 5vw;
   }
   .brand {
     display: flex; align-items: center; justify-content: space-between;
-    font-size: 2.6vh; letter-spacing: .15em; text-transform: uppercase;
+    font-size: 2.4vh; letter-spacing: .15em; text-transform: uppercase;
   }
   .brand .logo  { color: var(--cisco-blue); font-weight: 800; letter-spacing: .12em; }
   .brand .title { color: var(--yellow);     font-weight: 800; letter-spacing: .08em; }
-  .brand .right { color: var(--muted); font-size: 2.2vh; letter-spacing: .25em; }
+  .brand .right { color: var(--muted); font-size: 2vh; letter-spacing: .25em; }
 
-  .status { margin-top: 1vh; font-size: 2.8vh; color: var(--muted); font-weight: 600; }
+  .status { margin-top: .8vh; font-size: 2.5vh; color: var(--muted); font-weight: 600; }
   .timerbar {
-    height: 1.1vh; width: 100%; background: rgba(255,255,255,.08);
-    border-radius: 1vh; overflow: hidden; margin-top: 1.4vh;
+    height: 1vh; width: 100%; background: rgba(255,255,255,.08);
+    border-radius: 1vh; overflow: hidden; margin-top: 1.2vh;
   }
   .timerbar > span {
     display: block; height: 100%; width: 100%;
     background: linear-gradient(90deg, var(--cisco-blue), #6FD3F2);
     transform-origin: left center;
   }
-  .question { flex: 0 0 auto; margin: 3.5vh 0 3vh; font-size: 5.4vh; font-weight: 700; line-height: 1.15; }
+  .question { flex: 0 0 auto; margin: 2.6vh 0 2.4vh; font-size: 4.4vh; font-weight: 700; line-height: 1.15; }
 
-  .options { display: flex; flex-direction: column; gap: 2.4vh; flex: 1 1 auto; justify-content: center; }
+  /* single column, 4 options, aligned top-to-bottom with the Navigator */
+  .options { display: flex; flex-direction: column; gap: 1.6vh; flex: 1 1 auto; justify-content: center; }
   .opt {
-    display: flex; align-items: center; gap: 2.5vh;
+    display: flex; align-items: center; gap: 2vh;
     background: rgba(255,255,255,.06); border: 2px solid rgba(255,255,255,.08);
-    border-radius: 2vh; padding: 2.6vh 3.5vh; font-size: 3.8vh; font-weight: 600;
+    border-radius: 1.6vh; padding: 1.8vh 2.8vh; font-size: 2.9vh; font-weight: 600; line-height: 1.2;
     transition: background .25s, border-color .25s, transform .25s;
   }
   .opt .letter {
-    flex: 0 0 auto; width: 7vh; height: 7vh; border-radius: 50%;
+    flex: 0 0 auto; width: 5.6vh; height: 5.6vh; border-radius: 50%;
     background: var(--cisco-blue); color: var(--cisco-navy);
     display: flex; align-items: center; justify-content: center;
-    font-size: 3.6vh; font-weight: 800;
+    font-size: 3vh; font-weight: 800;
   }
-  .opt.correct { background: rgba(46,204,113,.22); border-color: var(--green); transform: scale(1.02); }
+  .opt.correct { background: rgba(46,204,113,.22); border-color: var(--green); transform: scale(1.015); }
   .opt.correct .letter { background: var(--green); color: #06281A; }
   .opt.wrong   { background: rgba(231,76,60,.18); border-color: var(--red); }
   .opt.wrong .letter { background: var(--red); }
@@ -72,7 +73,6 @@
   .huge  { font-size: 11vh;  font-weight: 800; color: var(--yellow); line-height: 1; }
   .sub   { font-size: 3.4vh; color: var(--muted); font-weight: 600; }
 
-  /* results: leaderboard + QR side by side */
   .resrow { display: flex; gap: 5vw; align-items: center; justify-content: center; width: 100%; margin-top: 1vh; }
   .board { flex: 0 1 auto; min-width: 38vw; }
   .board h3 { font-size: 2.6vh; color: var(--yellow); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 1.2vh; }
@@ -110,6 +110,7 @@
       <div class="opt" data-key="a"><span class="letter">A</span><span class="txt" id="oa"></span></div>
       <div class="opt" data-key="b"><span class="letter">B</span><span class="txt" id="ob"></span></div>
       <div class="opt" data-key="c"><span class="letter">C</span><span class="txt" id="oc"></span></div>
+      <div class="opt" data-key="d"><span class="letter">D</span><span class="txt" id="od"></span></div>
     </div>
   </div>
 
@@ -149,6 +150,7 @@
     document.getElementById('oa').textContent = get('oa');
     document.getElementById('ob').textContent = get('ob');
     document.getElementById('oc').textContent = get('oc');
+    document.getElementById('od').textContent = get('od');
 
     const fill = document.getElementById('timerFill');
     if (mode === 'question') {
@@ -203,19 +205,16 @@
     document.getElementById('resrow').classList.add('hidden');
   }
 
-  // Build the pre-filled certificate URL and render it as a QR code (local lib).
   function renderCertQR(name, score, total) {
     const base = location.href.split('?')[0].replace(/[^/]*$/, '');
     const certUrl = `${base}cert.html?name=${encodeURIComponent(name)}&score=${score}&total=${total}`;
     const img = document.getElementById('qrImg');
     try {
-      const qr = qrcode(0, 'M');     // type 0 = auto-size, EC level M
+      const qr = qrcode(0, 'M');
       qr.addData(certUrl);
       qr.make();
-      img.src = qr.createDataURL(8, 16);   // cellSize=8px, margin=16px
-    } catch (e) {
-      img.alt = 'QR could not be generated';
-    }
+      img.src = qr.createDataURL(8, 16);
+    } catch (e) { img.alt = 'QR could not be generated'; }
   }
 
   function escapeHtml(s) {
