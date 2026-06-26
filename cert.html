@@ -4,6 +4,9 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>DealMyTime Certificate Station</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
 <style>
   :root{
     --cisco-blue:#1BA0D7; --cisco-dark:#0D274D; --cisco-navy:#07182E;
@@ -17,17 +20,18 @@
   h1 .logo{color:var(--cisco-blue);font-weight:800}
   h1 .title{color:var(--yellow);font-weight:800}
   .sub{color:var(--muted);font-size:14px;margin-bottom:18px}
-  .wrap{display:flex;flex-wrap:wrap;gap:24px;justify-content:center;width:100%;max-width:1100px}
+  .wrap{display:flex;flex-wrap:wrap;gap:24px;justify-content:center;width:100%;max-width:1200px}
   .panel{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
-    border-radius:16px;padding:18px;flex:1 1 360px;min-width:320px}
+    border-radius:16px;padding:18px}
+  .left{flex:1 1 340px;min-width:300px;max-width:420px}
+  .right{flex:2 1 560px;min-width:320px}
   .panel h2{font-size:16px;color:var(--yellow);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px}
-  video,#certCanvas{width:100%;border-radius:12px;background:#000;display:block}
-  #certCanvas{aspect-ratio:1/1}
+  video{width:100%;border-radius:12px;background:#000;display:block}
+  #certCanvas{width:100%;height:auto;aspect-ratio:1448/1086;border-radius:10px;background:#fff;display:block}
   label{display:block;font-size:13px;color:var(--muted);margin:12px 0 4px}
   input,select{width:100%;padding:11px 12px;border-radius:9px;border:1px solid rgba(255,255,255,.18);
     background:rgba(255,255,255,.07);color:#fff;font-size:15px}
-  .row{display:flex;gap:10px}
-  .row>*{flex:1}
+  .row{display:flex;gap:10px}.row>*{flex:1}
   button{cursor:pointer;border:none;border-radius:9px;padding:12px 14px;font-size:15px;font-weight:700;margin-top:12px}
   .primary{background:var(--cisco-blue);color:var(--cisco-navy)}
   .gold{background:var(--yellow);color:var(--cisco-navy)}
@@ -44,7 +48,7 @@
 
   <div class="wrap">
     <!-- LEFT: camera + details -->
-    <div class="panel">
+    <div class="panel left">
       <h2>1 · Camera</h2>
       <label>Camera source</label>
       <select id="camSelect"></select>
@@ -53,25 +57,25 @@
 
       <h2 style="margin-top:20px">2 · Your details</h2>
       <label>Name</label>
-      <input id="nameInput" placeholder="Your name" maxlength="32" />
+      <input id="nameInput" placeholder="Your name" maxlength="28" />
       <div class="row">
-        <div><label>Score</label><input id="scoreInput" type="number" min="0" max="5" placeholder="4" /></div>
+        <div><label>Score (records)</label><input id="scoreInput" type="number" min="0" max="5" placeholder="4" /></div>
         <div><label>Out of</label><input id="totalInput" type="number" min="1" max="20" value="5" /></div>
       </div>
-      <button id="buildBtn" class="primary">Build certificate</button>
       <div class="hint">Tip: set the Room Bar / Room Kit to <b>USB camera mode</b> and pick it above to use the AI-framed Cisco camera as the photo source.</div>
     </div>
 
     <!-- RIGHT: certificate + actions -->
-    <div class="panel">
+    <div class="panel right">
       <h2>3 · Your certificate</h2>
-      <canvas id="certCanvas" width="1080" height="1080"></canvas>
+      <canvas id="certCanvas" width="1448" height="1086"></canvas>
       <button id="downloadBtn" class="gold">Download certificate</button>
 
       <h2 style="margin-top:20px">4 · Email me booth updates (optional)</h2>
-      <label>Email</label>
-      <input id="emailInput" type="email" placeholder="you@company.com" />
-      <button id="saveLeadBtn" class="primary">Save my email</button>
+      <div class="row">
+        <input id="emailInput" type="email" placeholder="you@company.com" />
+        <button id="saveLeadBtn" class="primary" style="flex:0 0 auto;margin-top:0">Save email</button>
+      </div>
       <div id="leadMsg" class="ok"></div>
       <button id="linkedinBtn" class="ghost">Open LinkedIn to post it</button>
     </div>
@@ -86,13 +90,27 @@
   const $ = (id) => document.getElementById(id);
   const p = new URLSearchParams(location.search);
 
-  // Prefill from URL if launched with ?name=&score=&total=
   $('nameInput').value  = p.get('name')  || '';
   $('scoreInput').value = p.get('score') || '';
   $('totalInput').value = p.get('total') || '5';
 
-  let capturedImg = null;          // Image of the captured frame
-  let currentStream = null;
+  // --- overlay geometry (fractions of the template W/H — nudge if needed) --
+  const TPL = {
+    photo: { cx: 0.160, cy: 0.476, r: 0.084 },           // photo circle
+    name:  { cx: 0.520, cy: 0.505, maxW: 0.40, size: 0.092 }, // script name
+    cover: { x: 0.305, y: 0.440, w: 0.430, h: 0.080, color: '#F9FAFC' }, // hides "Your Name"
+  };
+
+  let capturedImg = null, currentStream = null;
+  let bgReady = false, fontReady = false;
+  const bg = new Image();
+  bg.onload = () => { bgReady = true; buildCertificate(); };
+  bg.src = 'certificate-bg.png';
+
+  // ensure the script font is loaded before drawing the name
+  if (document.fonts && document.fonts.load) {
+    document.fonts.load('100px "Great Vibes"').then(() => { fontReady = true; buildCertificate(); }).catch(()=>{ fontReady = true; });
+  } else { fontReady = true; }
 
   // ---- camera ----------------------------------------------------------
   async function startCamera(deviceId){
@@ -118,7 +136,6 @@
       o.value=c.deviceId; o.textContent=c.label || ('Camera '+(i+1));
       sel.appendChild(o);
     });
-    // auto-pick a Cisco/Webex/Room camera if present
     const cisco = cams.find(c=>/cisco|webex|room|desk|codec/i.test(c.label));
     if(cisco) sel.value = cisco.deviceId;
   }
@@ -126,7 +143,7 @@
 
   $('captureBtn').addEventListener('click', ()=>{
     const v=$('video');
-    if(!v.videoWidth){ return; }
+    if(!v.videoWidth) return;
     const c=document.createElement('canvas');
     c.width=v.videoWidth; c.height=v.videoHeight;
     c.getContext('2d').drawImage(v,0,0);
@@ -137,55 +154,44 @@
 
   // ---- certificate render ---------------------------------------------
   function buildCertificate(){
+    if(!bgReady) return;
     const cv=$('certCanvas'), g=cv.getContext('2d'), W=cv.width, H=cv.height;
-    // background
-    const grad=g.createLinearGradient(0,0,0,H);
-    grad.addColorStop(0,'#0D274D'); grad.addColorStop(1,'#07182E');
-    g.fillStyle=grad; g.fillRect(0,0,W,H);
-    // border
-    g.strokeStyle='#FFD200'; g.lineWidth=10; g.strokeRect(28,28,W-56,H-56);
+    g.clearRect(0,0,W,H);
+    g.drawImage(bg, 0, 0, W, H);
 
-    // header
-    g.textAlign='center';
-    g.font='800 54px Helvetica, Arial';
-    g.fillStyle='#1BA0D7'; g.fillText('CISCO', W/2-95, 130);
-    g.fillStyle='#FFD200'; g.fillText('DealMyTime', W/2+110, 130);
-    g.fillStyle='#9FB6CE'; g.font='600 26px Helvetica, Arial';
-    g.fillText('CISCO PARTNER BOOTH · QUIZ CERTIFICATE', W/2, 178);
-
-    // photo (circle)
-    const cx=W/2, cy=400, r=170;
-    g.save();
-    g.beginPath(); g.arc(cx,cy,r,0,Math.PI*2); g.closePath(); g.clip();
+    // photo into the left circle (only once a photo is captured)
     if(capturedImg){
-      const ar=capturedImg.width/capturedImg.height, d=r*2;
+      const cx=TPL.photo.cx*W, cy=TPL.photo.cy*H, r=TPL.photo.r*W;
+      g.save();
+      g.beginPath(); g.arc(cx,cy,r,0,Math.PI*2); g.closePath(); g.clip();
+      const iw=capturedImg.width, ih=capturedImg.height, ar=iw/ih, d=r*2;
       let dw=d, dh=d; if(ar>1){ dw=d*ar; } else { dh=d/ar; }
       g.drawImage(capturedImg, cx-dw/2, cy-dh/2, dw, dh);
-    }else{
-      g.fillStyle='#13325c'; g.fillRect(cx-r,cy-r,r*2,r*2);
+      g.restore();
     }
-    g.restore();
-    g.beginPath(); g.arc(cx,cy,r,0,Math.PI*2); g.lineWidth=8; g.strokeStyle='#1BA0D7'; g.stroke();
 
-    // name
-    const name=($('nameInput').value||'Guest').trim();
-    g.fillStyle='#FFD200'; g.font='800 70px Helvetica, Arial';
-    g.fillText(name, W/2, 700);
+    // name: cover the baked "Your Name", then draw the real name in script
+    const name=($('nameInput').value||'').trim();
+    if(name){
+      g.fillStyle=TPL.cover.color;
+      g.fillRect(TPL.cover.x*W, TPL.cover.y*H, TPL.cover.w*W, TPL.cover.h*H);
 
-    // achievement
-    const sc=parseInt($('scoreInput').value,10), tot=parseInt($('totalInput').value,10)||5;
-    g.fillStyle='#fff'; g.font='600 36px Helvetica, Arial';
-    const line = isNaN(sc) ? 'Completed the DealMyTime Quiz' : `Scored ${sc} / ${tot} on the DealMyTime Quiz`;
-    g.fillText(line, W/2, 770);
+      const cx=TPL.name.cx*W;
+      let size=TPL.name.size*H;
+      const fam = fontReady ? '"Great Vibes", cursive' : 'cursive';
+      g.textAlign='center'; g.textBaseline='alphabetic';
+      g.font=`${size}px ${fam}`;
+      let tw=g.measureText(name).width;
+      const maxW=TPL.name.maxW*W;
+      if(tw>maxW){ size*=maxW/tw; g.font=`${size}px ${fam}`; tw=g.measureText(name).width; }
 
-    // tagline + date
-    g.fillStyle='#9FB6CE'; g.font='500 28px Helvetica, Arial';
-    g.fillText('Tested my Cisco collaboration knowledge at the booth', W/2, 830);
-    g.fillStyle='#1BA0D7'; g.font='700 26px Helvetica, Arial';
-    g.fillText(new Date().toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'}), W/2, 980);
+      const grad=g.createLinearGradient(cx-tw/2,0,cx+tw/2,0);
+      grad.addColorStop(0,'#6A2C9A'); grad.addColorStop(1,'#2A4DD0');
+      g.fillStyle=grad;
+      g.fillText(name, cx, TPL.name.cy*H);
+    }
   }
-  $('buildBtn').addEventListener('click', buildCertificate);
-  ['nameInput','scoreInput','totalInput'].forEach(id=>$(id).addEventListener('input', buildCertificate));
+  ['nameInput'].forEach(id=>$(id).addEventListener('input', buildCertificate));
 
   // ---- download --------------------------------------------------------
   $('downloadBtn').addEventListener('click', ()=>{
@@ -194,10 +200,10 @@
       const a=document.createElement('a');
       a.href=URL.createObjectURL(b); a.download=`DealMyTime_${name}.png`; a.click();
       URL.revokeObjectURL(a.href);
-    });
+    },'image/png');
   });
 
-  // ---- lead capture (localStorage, exportable to CSV) ------------------
+  // ---- lead capture (localStorage -> CSV) ------------------------------
   const LS='dmt_leads';
   function leads(){ try{ return JSON.parse(localStorage.getItem(LS)||'[]'); }catch{ return []; } }
   function refreshCount(){ $('leadCount').textContent = leads().length; }
@@ -205,7 +211,7 @@
 
   $('saveLeadBtn').addEventListener('click', ()=>{
     const email=($('emailInput').value||'').trim();
-    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ $('leadMsg').textContent='Please enter a valid email.'; $('leadMsg').style.color='#F2B8B8'; return; }
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ $('leadMsg').style.color='#F2B8B8'; $('leadMsg').textContent='Please enter a valid email.'; return; }
     const all=leads();
     all.push({ name:$('nameInput').value||'', email, score:$('scoreInput').value||'', total:$('totalInput').value||'', ts:new Date().toISOString() });
     localStorage.setItem(LS, JSON.stringify(all));
@@ -225,12 +231,8 @@
     a.download='dealmytime_leads.csv'; a.click(); URL.revokeObjectURL(a.href);
   });
 
-  $('linkedinBtn').addEventListener('click', ()=>{
-    window.open('https://www.linkedin.com/feed/?shareActive=true','_blank');
-  });
+  $('linkedinBtn').addEventListener('click', ()=>window.open('https://www.linkedin.com/feed/?shareActive=true','_blank'));
 
-  // boot
-  buildCertificate();
   startCamera();
 </script>
 </body>
