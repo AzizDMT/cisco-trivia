@@ -3,174 +3,77 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>DealMyTime Certificate Station</title>
+<title>DealMyTime Certificate</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --cisco-blue:#1BA0D7; --cisco-dark:#0D274D; --cisco-navy:#07182E;
-    --yellow:#FFD200; --ink:#fff; --muted:#9FB6CE;
-  }
+  :root{ --cisco-blue:#1BA0D7; --cisco-dark:#0D274D; --cisco-navy:#07182E; --yellow:#FFD200; --muted:#9FB6CE; }
   *{box-sizing:border-box;margin:0;padding:0;font-family:"Helvetica Neue",Arial,sans-serif}
-  body{min-height:100vh;color:var(--ink);
+  body{min-height:100vh;color:#fff;
     background:radial-gradient(circle at 50% 0%,var(--cisco-dark),var(--cisco-navy) 70%);
-    display:flex;flex-direction:column;align-items:center;padding:24px}
-  h1{font-size:26px;letter-spacing:.04em;margin-bottom:2px}
+    display:flex;flex-direction:column;align-items:center;padding:20px}
+  h1{font-size:22px;letter-spacing:.03em;margin-bottom:4px;text-align:center}
   h1 .logo{color:var(--cisco-blue);font-weight:800}
   h1 .title{color:var(--yellow);font-weight:800}
-  .sub{color:var(--muted);font-size:14px;margin-bottom:18px}
-  .wrap{display:flex;flex-wrap:wrap;gap:24px;justify-content:center;width:100%;max-width:1200px}
-  .panel{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
-    border-radius:16px;padding:18px}
-  .left{flex:1 1 340px;min-width:300px;max-width:420px}
-  .right{flex:2 1 560px;min-width:320px}
-  .panel h2{font-size:16px;color:var(--yellow);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px}
-  video{width:100%;border-radius:12px;background:#000;display:block}
+  .sub{color:var(--muted);font-size:14px;margin-bottom:16px;text-align:center}
+  .card{width:100%;max-width:760px;background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px}
   #certCanvas{width:100%;height:auto;aspect-ratio:1448/1086;border-radius:10px;background:#fff;display:block}
-  label{display:block;font-size:13px;color:var(--muted);margin:12px 0 4px}
-  input,select{width:100%;padding:11px 12px;border-radius:9px;border:1px solid rgba(255,255,255,.18);
-    background:rgba(255,255,255,.07);color:#fff;font-size:15px}
-  .row{display:flex;gap:10px}.row>*{flex:1}
-  button{cursor:pointer;border:none;border-radius:9px;padding:12px 14px;font-size:15px;font-weight:700;margin-top:12px}
-  .primary{background:var(--cisco-blue);color:var(--cisco-navy)}
+  label{display:block;font-size:13px;color:var(--muted);margin:14px 0 4px}
+  input{width:100%;padding:12px;border-radius:9px;border:1px solid rgba(255,255,255,.18);
+    background:rgba(255,255,255,.07);color:#fff;font-size:16px}
+  button{cursor:pointer;border:none;border-radius:10px;padding:14px;font-size:16px;font-weight:800;margin-top:14px;width:100%}
   .gold{background:var(--yellow);color:var(--cisco-navy)}
-  .ghost{background:transparent;color:var(--ink);border:1px solid rgba(255,255,255,.25)}
-  .hint{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5}
-  .ok{color:#7CF2A6;font-size:13px;margin-top:8px;min-height:18px}
-  .foot{margin-top:18px;font-size:12px;color:var(--muted)}
-  .foot a{color:var(--cisco-blue)}
+  .ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.25)}
+  .hint{font-size:12px;color:var(--muted);margin-top:10px;text-align:center;line-height:1.5}
 </style>
 </head>
 <body>
-  <h1><span class="logo">CISCO</span> <span class="title">DealMyTime</span> Certificate Station</h1>
-  <div class="sub">Powered by the Cisco camera (USB mode) — snap, personalise, download.</div>
+  <h1><span class="logo">CISCO</span> <span class="title">DealMyTime</span> — Your Certificate</h1>
+  <div class="sub">Tap Download to save your Certificate of Participation.</div>
 
-  <div class="wrap">
-    <!-- LEFT: camera + details -->
-    <div class="panel left">
-      <h2>1 · Camera</h2>
-      <label>Camera source</label>
-      <select id="camSelect"></select>
-      <video id="video" autoplay playsinline muted></video>
-      <button id="captureBtn" class="primary">Capture photo</button>
-
-      <h2 style="margin-top:20px">2 · Your details</h2>
-      <label>Name</label>
-      <input id="nameInput" placeholder="Your name" maxlength="28" />
-      <div class="row">
-        <div><label>Score (records)</label><input id="scoreInput" type="number" min="0" max="5" placeholder="4" /></div>
-        <div><label>Out of</label><input id="totalInput" type="number" min="1" max="20" value="5" /></div>
-      </div>
-      <div class="hint">Tip: set the Room Bar / Room Kit to <b>USB camera mode</b> and pick it above to use the AI-framed Cisco camera as the photo source.</div>
-    </div>
-
-    <!-- RIGHT: certificate + actions -->
-    <div class="panel right">
-      <h2>3 · Your certificate</h2>
-      <canvas id="certCanvas" width="1448" height="1086"></canvas>
-      <button id="downloadBtn" class="gold">Download certificate</button>
-
-      <h2 style="margin-top:20px">4 · Email me booth updates (optional)</h2>
-      <div class="row">
-        <input id="emailInput" type="email" placeholder="you@company.com" />
-        <button id="saveLeadBtn" class="primary" style="flex:0 0 auto;margin-top:0">Save email</button>
-      </div>
-      <div id="leadMsg" class="ok"></div>
-      <button id="linkedinBtn" class="ghost">Open LinkedIn to post it</button>
-    </div>
-  </div>
-
-  <div class="foot">
-    Organiser: <a href="#" id="exportBtn">export collected emails (CSV)</a> ·
-    <span id="leadCount">0</span> saved on this device
+  <div class="card">
+    <canvas id="certCanvas" width="1448" height="1086"></canvas>
+    <label>Name on certificate</label>
+    <input id="nameInput" placeholder="Your name" maxlength="28" />
+    <button id="downloadBtn" class="gold">Download certificate</button>
+    <button id="linkedinBtn" class="ghost">Share on LinkedIn</button>
+    <div class="hint">Pre-filled from your quiz. Edit the name above if needed, then download.</div>
   </div>
 
 <script>
   const $ = (id) => document.getElementById(id);
   const p = new URLSearchParams(location.search);
+  $('nameInput').value = p.get('name') || '';
 
-  $('nameInput').value  = p.get('name')  || '';
-  $('scoreInput').value = p.get('score') || '';
-  $('totalInput').value = p.get('total') || '5';
-
-  // --- overlay geometry (fractions of the template W/H — nudge if needed) --
+  // overlay geometry (fractions of template W/H), measured from the template
   const TPL = {
-    photo: { cx: 0.160, cy: 0.476, r: 0.084 },           // photo circle
-    name:  { cx: 0.520, cy: 0.505, maxW: 0.40, size: 0.092 }, // script name
-    cover: { x: 0.305, y: 0.440, w: 0.430, h: 0.080, color: '#F9FAFC' }, // hides "Your Name"
+    seal: { cx: 0.166, cy: 0.522, r: 0.085, color: '#FDFCFB' },          // hides gray photo placeholder
+    name: { cx: 0.538, cy: 0.490, maxW: 0.40, size: 0.125 },             // script name
+    cover:{ x: 0.351, y: 0.420, w: 0.373, h: 0.141, color: '#FDFCFB' },  // hides baked "Your Name"
   };
 
-  let capturedImg = null, currentStream = null;
   let bgReady = false, fontReady = false;
   const bg = new Image();
   bg.onload = () => { bgReady = true; buildCertificate(); };
   bg.src = 'certificate-bg.png';
 
-  // ensure the script font is loaded before drawing the name
   if (document.fonts && document.fonts.load) {
-    document.fonts.load('100px "Great Vibes"').then(() => { fontReady = true; buildCertificate(); }).catch(()=>{ fontReady = true; });
+    document.fonts.load('100px "Great Vibes"').then(() => { fontReady = true; buildCertificate(); }).catch(() => { fontReady = true; });
   } else { fontReady = true; }
 
-  // ---- camera ----------------------------------------------------------
-  async function startCamera(deviceId){
-    if(currentStream) currentStream.getTracks().forEach(t=>t.stop());
-    try{
-      const constraints = { video: deviceId ? { deviceId:{exact:deviceId} } : { width:1280, height:720 }, audio:false };
-      currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-      $('video').srcObject = currentStream;
-      await listCameras();
-    }catch(e){
-      $('video').replaceWith(Object.assign(document.createElement('div'),
-        {className:'hint', textContent:'Camera unavailable. Allow camera access, or connect the Cisco device in USB mode. ('+e.name+')'}));
-    }
-  }
-  async function listCameras(){
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const cams = devices.filter(d=>d.kind==='videoinput');
-    const sel = $('camSelect');
-    if(sel.options.length === cams.length) return;
-    sel.innerHTML = '';
-    cams.forEach((c,i)=>{
-      const o=document.createElement('option');
-      o.value=c.deviceId; o.textContent=c.label || ('Camera '+(i+1));
-      sel.appendChild(o);
-    });
-    const cisco = cams.find(c=>/cisco|webex|room|desk|codec/i.test(c.label));
-    if(cisco) sel.value = cisco.deviceId;
-  }
-  $('camSelect').addEventListener('change', e=>startCamera(e.target.value));
-
-  $('captureBtn').addEventListener('click', ()=>{
-    const v=$('video');
-    if(!v.videoWidth) return;
-    const c=document.createElement('canvas');
-    c.width=v.videoWidth; c.height=v.videoHeight;
-    c.getContext('2d').drawImage(v,0,0);
-    const img=new Image();
-    img.onload=()=>{ capturedImg=img; buildCertificate(); };
-    img.src=c.toDataURL('image/png');
-  });
-
-  // ---- certificate render ---------------------------------------------
   function buildCertificate(){
     if(!bgReady) return;
     const cv=$('certCanvas'), g=cv.getContext('2d'), W=cv.width, H=cv.height;
     g.clearRect(0,0,W,H);
     g.drawImage(bg, 0, 0, W, H);
 
-    // photo into the left circle (only once a photo is captured)
-    if(capturedImg){
-      const cx=TPL.photo.cx*W, cy=TPL.photo.cy*H, r=TPL.photo.r*W;
-      g.save();
-      g.beginPath(); g.arc(cx,cy,r,0,Math.PI*2); g.closePath(); g.clip();
-      const iw=capturedImg.width, ih=capturedImg.height, ar=iw/ih, d=r*2;
-      let dw=d, dh=d; if(ar>1){ dw=d*ar; } else { dh=d/ar; }
-      g.drawImage(capturedImg, cx-dw/2, cy-dh/2, dw, dh);
-      g.restore();
-    }
+    // clean the photo medallion (no photo in this flow)
+    g.fillStyle=TPL.seal.color;
+    g.beginPath(); g.arc(TPL.seal.cx*W, TPL.seal.cy*H, TPL.seal.r*W, 0, Math.PI*2); g.fill();
 
-    // name: cover the baked "Your Name", then draw the real name in script
+    // name: cover baked "Your Name", then draw the real name in script
     const name=($('nameInput').value||'').trim();
     if(name){
       g.fillStyle=TPL.cover.color;
@@ -179,7 +82,7 @@
       const cx=TPL.name.cx*W;
       let size=TPL.name.size*H;
       const fam = fontReady ? '"Great Vibes", cursive' : 'cursive';
-      g.textAlign='center'; g.textBaseline='alphabetic';
+      g.textAlign='center'; g.textBaseline='middle';
       g.font=`${size}px ${fam}`;
       let tw=g.measureText(name).width;
       const maxW=TPL.name.maxW*W;
@@ -191,9 +94,8 @@
       g.fillText(name, cx, TPL.name.cy*H);
     }
   }
-  ['nameInput'].forEach(id=>$(id).addEventListener('input', buildCertificate));
+  $('nameInput').addEventListener('input', buildCertificate);
 
-  // ---- download --------------------------------------------------------
   $('downloadBtn').addEventListener('click', ()=>{
     const name=($('nameInput').value||'certificate').trim().replace(/\s+/g,'_');
     $('certCanvas').toBlob(b=>{
@@ -203,37 +105,7 @@
     },'image/png');
   });
 
-  // ---- lead capture (localStorage -> CSV) ------------------------------
-  const LS='dmt_leads';
-  function leads(){ try{ return JSON.parse(localStorage.getItem(LS)||'[]'); }catch{ return []; } }
-  function refreshCount(){ $('leadCount').textContent = leads().length; }
-  refreshCount();
-
-  $('saveLeadBtn').addEventListener('click', ()=>{
-    const email=($('emailInput').value||'').trim();
-    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ $('leadMsg').style.color='#F2B8B8'; $('leadMsg').textContent='Please enter a valid email.'; return; }
-    const all=leads();
-    all.push({ name:$('nameInput').value||'', email, score:$('scoreInput').value||'', total:$('totalInput').value||'', ts:new Date().toISOString() });
-    localStorage.setItem(LS, JSON.stringify(all));
-    $('leadMsg').style.color='#7CF2A6'; $('leadMsg').textContent='Saved. Thank you!';
-    $('emailInput').value=''; refreshCount();
-  });
-
-  $('exportBtn').addEventListener('click', (e)=>{
-    e.preventDefault();
-    const all=leads();
-    if(!all.length){ alert('No emails collected yet on this device.'); return; }
-    const head='name,email,score,total,timestamp\n';
-    const csv=head+all.map(r=>[r.name,r.email,r.score,r.total,r.ts]
-      .map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-    a.download='dealmytime_leads.csv'; a.click(); URL.revokeObjectURL(a.href);
-  });
-
   $('linkedinBtn').addEventListener('click', ()=>window.open('https://www.linkedin.com/feed/?shareActive=true','_blank'));
-
-  startCamera();
 </script>
 </body>
 </html>
